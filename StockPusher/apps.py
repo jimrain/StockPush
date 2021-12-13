@@ -1,13 +1,19 @@
 import time
 import datetime
 import threading
+import json
+from random import random
+
 from django.apps import AppConfig
 from django_eventstream import send_event
 
+# This is the ASGI entry point and will get loaded automatically when INSTALLED_APPS contains Stockpusher (the
+# 'name' field in the class).
 class StockpusherConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'StockPusher'
 
+    # This is executed as soon as the app registry is fully populated.
     def ready(self):
         ensure_worker_started()
 
@@ -32,10 +38,23 @@ def ensure_worker_started():
 
 
 def send_worker():
+    stocks = {
+        "AAPL": 95.0,
+        "MSFT": 50.0,
+        "AMZN": 300.0,
+        "GOOG": 550.0,
+        "YHOO": 35.0,
+        "FB": 75.0
+    }
+
     while True:
-        data = datetime.datetime.utcnow().isoformat()
-        send_event('time', 'message', data)
-        time.sleep(1)
+        # data = datetime.datetime.utcnow().isoformat()
+
+        for key in stocks:
+            rando = random()
+            stocks[key] += rando
+        send_event('time', 'message', json.dumps(stocks))
+        time.sleep(2)
 
 
 def is_db_ready():
